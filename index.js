@@ -10,39 +10,70 @@ const colorOff = "#243342";
 const colorOffBorder = "#243542";
 const colorBackground = "#242526";
 
+//Size
+let size = 7;
+let xStart ;
+let xDifference;
+let yDifference;
+let yStart;
+let sizeBorder;
+
 //Text
 const colorText = "#cccccc";
-const fontText = "10px Arial";
+let fontText;
 
-//Size
-const size = 5;
-const xStart = canvas.width / 2 - 3 * size ;
-const xDifference = size * 4;
-const yDifference = 50;
-const yStart = canvas.height / 3 - 1.5 * yDifference;
 
 window.addEventListener("load",
     () => {
-        //canvas.width = window.innerWidth;
-        //canvas.height = window.innerHeight;
+        changeSizeValues();
         setup();
         setInterval(setup, 1000);
     }
 );
 
+window.addEventListener("keydown",
+    ({key}) => {
+        console.log(key);
+        if (key == "+"){
+            size++;
+        } else if (key == "-"){
+            size--;
+        }
+        if (size > 10) {
+            size = 10;
+        } else if (size < 5) {
+            size = 5;
+        }
+        console.log(size);
+        changeSizeValues();
+        setup();
+    }
+);
+
+function changeSizeValues(){
+    xStart = (canvas.width / 2) - (size * 10);
+    xDifference = size * 4;
+    yDifference = size * 6;
+    yStart = (canvas.height / 3);
+    sizeBorder = size * 0.2;
+    fontText = `${size*1.5}px Arial`;
+}
+
 function setup(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    xStart = (canvas.width / 2) - (size * 10);
+    yStart = (canvas.height / 3);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground();
     let x = xStart;
     let y = yStart;
     let now = new Date();
     let hour = now.getHours().toString(2).padStart(5, 0);
-    //console.log(hour);
     let minute = now.getMinutes().toString(2).padStart(6, 0);
-    //console.log(minute);
     let second = now.getSeconds().toString(2).padStart(6, 0);
+    writeText(x + size*10, y - yDifference * 1.25, "-     SIZE     +",  `${size*3}px Arial`);
+    writeText(x + size*10, y - (yDifference * 0.8), "(Press +/- to resize)",  `${size*1.5}px Arial`);
     showTime(hour, x, y);
     y += yDifference;
     showTime(minute, x, y);
@@ -52,9 +83,9 @@ function setup(){
 
 function showTime(time, x, y){
     for (let i = 0; i < time.length; i++){
-        writeText(x, y - 10, Math.pow(2, time.length - 1 - i));
+        writeText(x, y - size * 2, Math.pow(2, time.length - 1 - i));
         drawLight(x,y, time[i]);
-        x += 20;
+        x += xDifference;
     }
 }
 
@@ -64,8 +95,8 @@ function drawBackground(){
     ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function writeText(x, y, text){
-    ctx.font = fontText;
+function writeText(x, y, text, font){
+    ctx.font = font || fontText;
     ctx.fillStyle = colorText;
     ctx.textAlign = "center";
     ctx.fillText(text, x, y);
@@ -75,14 +106,14 @@ function drawLight(x,y, isOn){
     ctx.beginPath();
     if (isOn == 1){
         drawCircle(x, y, size, colorOn);
-        ctx.lineWidth = 1;
+        ctx.lineWidth = sizeBorder;
         ctx.strokeStyle = colorOnBorder;
         ctx.stroke();
-        drawCircle(x, y, 3, colorOnGradient1);
-        drawCircle(x, y, 2, colorOnGradient2);
+        drawCircle(x, y, size * 0.6, colorOnGradient1);
+        drawCircle(x, y, size * 0.4, colorOnGradient2);
     } else {
         drawCircle(x, y, size, colorOff);
-        ctx.lineWidth = 1;
+        ctx.lineWidth = sizeBorder;
         ctx.strokeStyle = colorOffBorder;
         ctx.stroke();
     }
