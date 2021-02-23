@@ -8,21 +8,36 @@ const defaultHP = 4;
 //SPRITES
 //coin sprite
 const gold = new Image();
-gold.src  = "./assets/gold.png";
+gold.src = "./assets/gold.png";
 const silver = new Image();
-silver.src  = "./assets/silver.png";
+silver.src = "./assets/silver.png";
 const ruby = new Image();
-ruby.src  = "./assets/ruby.png";
-const coins = [gold, silver, ruby];
+ruby.src = "./assets/ruby.png";
+const gemBlue = new Image();
+gemBlue.src = "./assets/gemBlue.png";
+const gemGreen = new Image();
+gemGreen.src = "./assets/gemGreen.png";
+const gemGold = new Image();
+gemGold.src = "./assets/gemGold.png";
+const gemSilver = new Image();
+gemSilver.src = "./assets/gemSilver.png";
+const gemRuby = new Image();
+gemRuby.src = "./assets/gemRuby.png";
+const coins = [gold, silver, ruby, gemBlue, gemGreen, gemGold, gemSilver, gemRuby];
+const coinWidth = 16;
+const coinHeight = 16;
 
 class Game {
     constructor () {
         this.level = 1;
         this.subLevel = 0;
         this.wait = defaultWait + 500;
-        this.amount = defaultAmount - 1;
+        this.amount = defaultAmount;
         this.hp = defaultHP;
         this.gameObjects = [];
+        this.coinWidth = coinWidth;
+        this.coinHeight = coinHeight;
+        this.coinAmount = defaultAmount;
     }
 
     update(){
@@ -58,14 +73,15 @@ class Game {
         let y = 50;
         this.gameObjects = [];
         for (let i = 0; i < this.amount; i++) {
-            this.gameObjects.push(this.getCoin(coins[Math.floor(Math.random()*3)], x, y));
+            this.gameObjects.push(this.getCoin(coins[Math.floor(Math.random()*this.coinAmount)], x, y));
             x += 50;
         }
         return this.gameObjects;
     }
 
     getCoin(type, x, y){
-        return new Img(type, 0, 0, 0, 4, 10, 16, 16, x, y);
+        let length = (type <= 2) ? 4 : 3;
+        return new Img(type, 0, 0, 0, length, 10, coinWidth, coinHeight, x, y);
     }
 
 }
