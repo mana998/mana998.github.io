@@ -1,0 +1,23 @@
+#buttons {
+    position:absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    height: 25%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    display: block;
+}
+canvas {
+    position:absolute;
+    z-index: 1;
+}
+
+button {
+    position: relative;
+    display: inherit;
+    right: 50%;
+    margin: 33% 50%;
+    width: 200%;
+    height: 20%;
+}

@@ -5,10 +5,16 @@ let lastTime;
 const requiredElapsed = 1000 / 30; //30 fps
 
 const distance = 10;
-const fontText = `10px Arial`
+const fontSize = canvas.width / 20
+const fontType = "Arial"
+const fontText = `${fontSize}px ${fontType}`
 
-let game = new Game();
+let game;
 let isGameOver = false;
+let difficulty;
+let isNew = true;
+
+let animationFrame;
 
 //SPRITES
 //character sprite
@@ -20,14 +26,35 @@ let bardDownImg = new Img(bard, 0, 1, 0, 1, 3, spriteWidth, spriteHeight);
 let bardLeftImg = new Img(bard, 1, 0, 0, 2, 3, spriteWidth, spriteHeight);
 let bardRightImg = new Img(bard, 2, 0, 0, 2, 3, spriteWidth, spriteHeight);
 let bardUpImg = new Img(bard, 3, 0, 0, 2, 3, spriteWidth, spriteHeight);
-
+//heart sprite
+const heart= new Image();
+heart.src  = "./assets/heart.png";
+const heartWidth = 16;
+const heartHeight = 16;
+let heartImg = new Img(heart, 0, 0, 0, 0, 10, heartWidth, heartHeight);
 //character
 let character = new Character(bardDownImg, spriteWidth, spriteHeight, canvas.width/2, canvas.height/2);
+
+//sound
+const collectSound = new sound("./assets/sounds/collect.wav");
+const wrongSound = new sound("./assets/sounds/wrong.wav");
+const gameOverSound = new sound("./assets/sounds/game_over.wav");
+const selectSound = new sound("./assets/sounds/select.wav");
 
 //array of objects
 //let gameObjects = game.getCoins();
 let gameObjects = [];
 gameObjects.push(character);
+
+//difficulty buttons
+const easy = document.getElementById("easy");
+const medium = document.getElementById("medium");
+const hard = document.getElementById("hard");
+let difficulties = new Map();
+difficulties.set(easy, 3);
+difficulties.set(medium, 5);
+difficulties.set(hard, 8);
+
 
 window.addEventListener("load",
     () => {
@@ -51,6 +78,10 @@ window.addEventListener("resize",
 window.addEventListener("keydown", move);
 
 window.addEventListener("keyup", stop);
+
+easy.addEventListener("click", () => setup("easy"));
+medium.addEventListener("click", () => setup("medium"));
+hard.addEventListener("click", () => setup("hard"));
 
 function stop(e){
     character.source.startColumn = 1;
@@ -83,9 +114,13 @@ function move(e){
         case "R":
             character.resetPosition(canvas);
             game = new Game();
-            console.log("restart");
+            isNew = true;
+            gameObjects = [];
+            gameObjects.push(character);
+            isGameOver = false;
+            difficulty = '';
+            window.cancelAnimationFrame(animationFrame);
             setup();
-            console.log("restart");
             break;
     }
     if (character.y < 0 - spriteHeight/2) {
@@ -101,14 +136,29 @@ function move(e){
     character.source.columns = 2;
 }
 
-function setup(){
-    draw();
+function setup(dif){
+    if (!difficulty && dif){
+        game = new Game();
+        selectSound.play()
+        document.getElementById("buttons").style.display = "none";
+        game.coinAmount = difficulties.get(document.getElementById(dif));
+        difficulty = dif;
+        isGameOver = false;
+        draw();
+    } else if (!difficulty && !dif){
+        if (!game) {
+            game = new Game();
+        }
+        document.getElementById("buttons").style.display = "block";
+        isGameOver = true;
+        drawBackground();
+    }
 }
 
 function draw(now){
                 //img, startx, starty, width, height, posx, posy,  new width, new height
     //ctx.drawImage(moneyImg, 64, 0, 16, 16, 0, 0, 16, 16);
-    requestAnimationFrame(draw);
+    animationFrame = requestAnimationFrame(draw);
     if (!lastTime) {
         lastTime = now;
     }
@@ -116,10 +166,11 @@ function draw(now){
     if (elapsed > requiredElapsed) {
         drawBackground();
         update();
+        console
         if (isGameOver) {
             //need to set size
-            writeText(canvas.width/2, canvas.height/2, "GAME OVER", "black");
-            writeText(canvas.width/2, canvas.height/2 + 20, "Press R to Restart", "black");
+            writeText(canvas.width/2, canvas.height/2 - fontSize, "GAME OVER", "black", "center", `${fontSize*2}px ${fontType}`);
+            writeText(canvas.width/2, canvas.height/2 + fontSize, "Press R to Restart", "black");
         } else {
             detectCollisions();
             drawBackground();
@@ -130,22 +181,35 @@ function draw(now){
                             switchPosition(gameObjects[0], gameObject);
                         }
                         gameObjects.shift();
+                        collectSound.play();
                     } else {
                         game.loseHP();
+                        (game.hp > 0) ? wrongSound.play() : gameOverSound.play();
                         character.resetPosition(canvas);
                     }
-                    console.log(game.hp);
+                    //console.log(game.hp);
                 } else {
                     drawImage(gameObject);
                 }
             }
-            writeText(20, 20, "Press R to Restart", "black", "left");
-            writeText(canvas.width - 20, 20, `Level ${game.level}-${game.subLevel}`, "black", "right");
+            drawLives();
+            writeText(canvas.width - fontSize, canvas.height - fontSize, "Press R to Restart", "black", "right");
+            writeText(fontSize, fontSize, `Level ${game.level}-${game.subLevel}`, "black", "left");
+            writeText(fontSize, canvas.height - fontSize, `Difficulty: ${difficulty}`, "black", "left");
         }
     }
 }
 
-function writeText(x, y, text, color, align, font){
+function drawLives() {
+    heartImg.x = canvas.width - heartWidth * 3/2;
+    heartImg.y = heartHeight * 1/2;
+    for (let i = 0; i < game.hp; i++){
+        drawImage(heartImg);
+        heartImg.x -= heartWidth * 3/2;
+    }
+}
+
+function writeText(x, y, text, color, align, font) {
     ctx.font = font || fontText;
     ctx.fillStyle = color;
     ctx.textAlign = align || "center";
@@ -205,6 +269,8 @@ function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
  function update(){
     if (game.hp > 0) {
         if (gameObjects.length === 1){
+            console.log(gameObjects.length);
+            console.log(game.amount);
             game.nextLvl();
             gameObjects = game.getCoins();
             showCoinsOrder();
@@ -217,14 +283,18 @@ function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
             }, game.wait);
         }
     } else {
-        console.log("Game Over");
         isGameOver = true;
     }
 }
 
 function showCoinsOrder(){
-    for (const gameObject of gameObjects) {
+    let y = (canvas.height - game.coinHeight) / 2;
+    let x = (canvas.width - gameObjects.length * game.coinWidth * 3/2) / 2;
+    for (let gameObject of gameObjects) {
+        gameObject.x = x;
+        gameObject.y = y;
         drawImage(gameObject);
+        x += coinWidth * 3/2;
     }
 }
 
@@ -234,6 +304,11 @@ function repositionCoins(){
         do {
             gameObjects[i].x = Math.floor(Math.random()*canvas.width);
             gameObjects[i].y = Math.floor(Math.random()*canvas.height);
+            //make sure coins are displayed fully on screen
+            if (gameObjects[i].x < game.coinWidth) gameObjects[i].x += game.coinWidth;
+            if (gameObjects[i].x > canvas.width - game.coinWidth) gameObjects[i].x -= game.coinWidth;
+            if (gameObjects[i].y < game.coinHeight) gameObjects[i].y += game.coinHeight;
+            if (gameObjects[i].y > canvas.height - game.coinHeight) gameObjects[i].y -= game.coinHeight;
             for (let j = 0; j < i; j++) {
                 isColliding = rectIntersect(gameObjects[i].x, gameObjects[i].y, gameObjects[i].width, gameObjects[i].height, gameObjects[j].x, gameObjects[j].y, gameObjects[j].width, gameObjects[j].height);
                 if (isColliding) {break;}
@@ -242,3 +317,18 @@ function repositionCoins(){
         } while (isColliding);
     }
 }
+
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play = function(){
+      this.sound.play();
+    }
+    this.stop = function(){
+      this.sound.pause();
+    }
+  }
