@@ -294,7 +294,7 @@ function showCoinsOrder(){
         gameObject.x = x;
         gameObject.y = y;
         drawImage(gameObject);
-        x += coinWidth * 3/2;
+        x += game.coinWidth * 3/2;
     }
 }
 
