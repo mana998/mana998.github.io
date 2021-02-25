@@ -4,6 +4,7 @@ const defaultAmount = 2;
 const maxSublevel = 5;
 const maxLevel = 5;
 const defaultHP = 4;
+const maxHP = 10;
 
 //SPRITES
 //coin sprite
@@ -63,7 +64,7 @@ class Game {
         if (this.level > maxLevel){
             return false;
         }
-        this.gainHP();
+        if (this.hp < maxHP) this.gainHP();
         this.update();
         return true;
     }

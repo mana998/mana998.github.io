@@ -223,15 +223,14 @@ function writeText(x, y, text, color, align, font) {
 }
 
 function drawBackground() {
-    console.log(game.subLevel);
-    console.log(backgrounds[1]);
     let selected = game.level || 1;
-    let grassPattern = ctx.createPattern(backgrounds[selected - 1], "repeat"); 
+    selected %= backgrounds.length;
+    let grassPattern = ctx.createPattern(backgrounds[selected] , "repeat"); 
     ctx.fillStyle = grassPattern;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawImage(img){
+function drawImage(img) {
     img.draw(ctx);
 }
 

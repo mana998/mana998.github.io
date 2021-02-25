@@ -11,7 +11,7 @@ gray.src = "./assets/images/background/gray.jpg";
 
 class Background {
     constructor() {
-        this.backgrounds = [green, orange, red, blue, gray];
+        this.backgrounds = [gray, green, orange, red, blue];
     }
     getBackgrounds() {
         return this.backgrounds;
